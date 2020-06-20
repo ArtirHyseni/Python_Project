@@ -190,7 +190,7 @@ class Game:
     x = self.playerPosition % vec_x
     y = int(self.playerPosition / vec_x)
 
-    #Draws player elements; this was be the top layer when drawn
+    #Draws player elements; this will be the top layer when drawn
     if self.currentAxis == Axis.Horizontal:
       actual_x = x * tile_size + ((self.playerCounter-3) * (tile_size / 5))
       actual_y = y * tile_size
