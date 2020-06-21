@@ -26,16 +26,15 @@ class Board:
       self.passable = True
       self.player = True
     
-    elif self.type == 'G':
+    elif self.type in ['B', 'P', 'I', 'C']:
       self.passable = True
       self.enemy = True
 
   def update(self):
 
-    if self.enemy == True:
-      self.type = 'G'
+    # enemy updates in update_tile_ghost() function
 
-    elif self.player == True:
+    if self.player == True:
      self.type = '@'
 
     elif self.warp == True:

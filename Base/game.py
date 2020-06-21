@@ -3,6 +3,7 @@ import os
 from enum import Enum
 from options import *
 from board import *
+from Python_Project.Base.ghost import *
 
 pygame.init()
 pygame.display.set_caption("Pac-Man")
@@ -29,7 +30,14 @@ class Game:
 
     #self.timer = pygame.time.Clock()
     #self.vec = pygame.math.Vector2[vec_x][vec_y]
-    
+
+    # create ghost list
+    self.ghost_list = [
+                       ghost(name="blinky"),
+                       ghost(name="pinky"),
+                       ghost(name="inky"),
+                       ghost(name="clyde") ]
+
     #Reads in board.txt and creates tile objects out of class Board
     #which creates a 2D vector when constructed
     self.tile = []
@@ -40,8 +48,16 @@ class Game:
           if c == '@':
             self.playerPosition = i
             c = ' '
-          self.tile.append(Board(c, i))
+          # if ghost is present,change its attribute's accordingly
+          elif c in ['B', 'P', 'I', 'C']:
+            if c == 'B': index = get_index(self.ghost_list, "blinky")
+            elif c == 'P': index = get_index(self.ghost_list, "pinky")
+            elif c == 'I': index = get_index(self.ghost_list, "inky")
+            else: index = get_index(self.ghost_list, "clyde")
+            self.ghost_list[index].active = 1
+            self.ghost_list[index].init_ghost_pos(i)
 
+          self.tile.append(Board(c,i))
     self.tile[self.playerPosition].player = True
 
     #The directional variable(s) in which Pac-Man moves each update
@@ -53,6 +69,10 @@ class Game:
     self.playerCounter = 3
 
     self.active = True
+
+    # initialize active ghosts' first mode to chase
+    # FIXME, change this back to chase (instead of scatter)
+    set_all_modes(get_actives(self.ghost_list), ghost_mode.scatter)
 
   def start(self):
 
@@ -67,6 +87,9 @@ class Game:
 
       #Listens to player_controller function; responsible for player movement automation 
       self.player_move()
+
+      #After player has been moved, update coordinates in ghost objects
+      self.ghosts_move()
 
       #Updates display to console
       self.console_display()
@@ -160,6 +183,14 @@ class Game:
     self.currentDirection = nextDirection
     self.currentAxis = nextAxis
 
+  def ghosts_move(self):
+
+    # targets of ghosts *may* be dependent on player
+    set_all_targets(get_actives(self.ghost_list), self.playerPosition, self)
+    # set values for ghosts' direction and pos based on targets
+    # this will be updating only the data held within the ghosts themselves, not the board
+    set_all_dirs_pos(get_actives(self.ghost_list), self)
+
   def draw(self):
     for i, tile in enumerate(self.tile):
       x = i % vec_x
@@ -170,7 +201,17 @@ class Game:
 
         if tile.coin:
           pygame.draw.rect(self.frame, green, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
-      
+
+        elif tile.enemy:
+          if tile.type == 'B':
+            pygame.draw.rect(self.frame, red, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
+          elif tile.type == 'P':
+            pygame.draw.rect(self.frame, pink, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
+          elif tile.type == 'I':
+            pygame.draw.rect(self.frame, aqua, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
+          else:
+            pygame.draw.rect(self.frame, olive, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
+
       elif tile.player:
         pygame.draw.rect(self.frame, yellow, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
@@ -181,6 +222,8 @@ class Game:
 
     for tile in self.tile:
       tile.update()
+
+    self.update_ghost_tiles()
 
     output = ""
     for i, tile in enumerate(self.tile):
@@ -194,3 +237,47 @@ class Game:
     print(self.currentDirection)
     print(self.currentAxis)
     print()
+
+  def update_ghost_tiles(self): # FIXME, need to think about ways this could break
+    # delete the old ghost locations
+    for ghost in get_actives(self.ghost_list):
+      if self.tile[ghost.prevpos].type == '@': # don't overwrite player
+        self.tile[ghost.prevpos].enemy = False
+      elif self.tile[ghost.prevpos].type == 'o': # don't make coins disappear? FIXME weird but it works?
+        self.tile[ghost.prevpos].enemy = False   # need to store what the tile had been prior to the ghost
+      elif self.tile[ghost.prevpos].type in ['B','P','I','C']:
+        continue
+      else:
+        self.tile[ghost.prevpos].type = ' '
+        self.tile[ghost.prevpos].enemy = False
+
+    # mark the new locations of ghosts on the board
+    for ghost in get_actives(self.ghost_list):
+      if ghost.name == 'blinky': char = 'B'
+      elif ghost.name == 'pinky': char = 'P'
+      elif ghost.name == 'inky': char = 'I'
+      else: char = 'C'
+      self.tile[ghost.pos].type = char
+      self.tile[ghost.pos].enemy = True
+
+  # give index of corner specified in string "position"
+  # a bit verbose, but if we keep board text files in same format,
+  # this should remain flexible
+  def get_corner(self, position):
+    if position == corner.top_left:
+      for tile in self.tile[::]:
+        if tile.type != "#": return tile.position
+
+    elif position == corner.top_right:
+      start = self.get_corner(corner.top_left)
+      for tile in self.tile[start::]:
+        if tile.type == "#": return tile.position - 1
+
+    elif position == corner.bottom_left:
+      start = self.get_corner(corner.bottom_right)
+      for tile in self.tile[start::-1]:
+        if tile.type == "#": return tile.position + 1
+
+    else:
+      for tile in self.tile[::-1]:
+        if tile.type != "#": return tile.position

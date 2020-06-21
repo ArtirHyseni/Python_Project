@@ -14,6 +14,9 @@ tile_size = 25
 #Colors
 black  = (  0,   0,   0)
 red    = (255,   0,   0)
+pink   =  (255, 0, 255)
 green  = (  0, 255,   0)
+aqua   = (0, 255, 255)
 blue   = (  0,   0, 255)
 yellow = (255, 255,   0)
+olive  = (128, 128, 0)
