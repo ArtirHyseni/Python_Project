@@ -2,14 +2,13 @@
 frame_width = 600
 frame_height = 600
 
-#Vector index size
+#Vector index size; the total amount of indices 
 #vec_x = 28
 #vec_y = 31
-
 vec_x = 21
 vec_y = 12
 
-#Total pixels of an index (Must be a multiple of 5)
+#Total pixels of an index
 tile_size = 25
 
 #Colors

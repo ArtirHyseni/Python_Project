@@ -5,23 +5,17 @@ Includes: Setters and getters
           Multiple ghost AIs
 written by: Abigail Mortensen
 """
-from Python_Project.Base.game import *
+import pygame
+import os
+from game import *
+from options import *
+from board import *
+from status import *
 from math import sqrt
 
 #constants
 MAX_NUM_GHOSTS = 4
 
-class ghost_mode(Enum):
-    chase = 0
-    scatter = 1
-    frightened = 2
-    eaten = 3
-
-class corner(Enum):
-    top_right = 0
-    top_left = 1
-    bottom_right = 2
-    bottom_left = 3
 
 class ghost(object):
 

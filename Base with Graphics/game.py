@@ -1,22 +1,13 @@
 import pygame
 import os
-from enum import Enum
+import images
 from options import *
 from board import *
-from Python_Project.Base.ghost import *
+from ghost import *
+from status import *
 
 pygame.init()
 pygame.display.set_caption("Pac-Man")
-
-class Direction(Enum):
-  Left  = 0
-  Up    = 1
-  Right = 2
-  Down  = 3
-
-class Axis(Enum):
-  Horizontal = 0
-  Vertical = 1
 
 class Game:
 
@@ -27,19 +18,6 @@ class Game:
 
     #Background color of the game
     self.frame.fill(black)
-
-    #Loads in PacMan Images
-    self.pacRightOpen = pygame.transform.scale(pygame.image.load("Images/pacman1_1.png"), (tile_size, tile_size))
-    self.pacLeftOpen = pygame.transform.rotate(self.pacRightOpen, 180)
-    self.pacUpOpen = pygame.transform.rotate(self.pacRightOpen, 90)
-    self.pacDownOpen = pygame.transform.rotate(self.pacRightOpen, 270)
-
-    self.pacRightClosed = pygame.transform.scale(pygame.image.load("Images/pacman1_2.png"), (tile_size, tile_size))
-    self.pacLeftClosed = pygame.transform.rotate(self.pacRightClosed, 180)
-    self.pacUpClosed = pygame.transform.rotate(self.pacRightClosed, 90)
-    self.pacDownClosed = pygame.transform.rotate(self.pacRightClosed, 270)
-
-    self.coin = pygame.transform.scale(pygame.image.load("Images/pacman1_1.png"), (int(tile_size/4), int(tile_size/4)))
 
     # create ghost list
     self.ghost_list = [
@@ -214,19 +192,49 @@ class Game:
 
       elif tile.enemy:
         if tile.type == 'B':
-          pygame.draw.rect(self.frame, red, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
-        elif tile.type == 'P':
-          pygame.draw.rect(self.frame, pink, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
-        elif tile.type == 'I':
-          pygame.draw.rect(self.frame, aqua, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
-        else:
-          pygame.draw.rect(self.frame, olive, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
+          if self.ghost_list[0].direction == Direction.Left:
+            self.frame.blit(images.blinky_left,(x * tile_size, y * tile_size))
+          elif self.ghost_list[0].direction == Direction.Right:
+            self.frame.blit(images.blinky_right,(x * tile_size, y * tile_size))
+          elif self.ghost_list[0].direction == Direction.Up:
+            self.frame.blit(images.blinky_up,(x * tile_size, y * tile_size))
+          else:
+            self.frame.blit(images.blinky_down,(x * tile_size, y * tile_size))
 
+        elif tile.type == 'P':
+          if self.ghost_list[1].direction == Direction.Left:
+            self.frame.blit(images.pinky_left,(x * tile_size, y * tile_size))
+          elif self.ghost_list[1].direction == Direction.Right:
+            self.frame.blit(images.pinky_right,(x * tile_size, y * tile_size))
+          elif self.ghost_list[1].direction == Direction.Up:
+            self.frame.blit(images.pinky_up,(x * tile_size, y * tile_size))
+          else:
+            self.frame.blit(images.pinky_down,(x * tile_size, y * tile_size))
+
+        elif tile.type == 'I':
+          if self.ghost_list[2].direction == Direction.Left:
+            self.frame.blit(images.inky_left,(x * tile_size, y * tile_size))
+          elif self.ghost_list[2].direction == Direction.Right:
+            self.frame.blit(images.inky_right,(x * tile_size, y * tile_size))
+          elif self.ghost_list[2].direction == Direction.Up:
+            self.frame.blit(images.inky_up,(x * tile_size, y * tile_size))
+          else:
+            self.frame.blit(images.inky_down,(x * tile_size, y * tile_size))
+
+        else:
+          if self.ghost_list[3].direction == Direction.Left:
+            self.frame.blit(images.clyde_left,(x * tile_size, y * tile_size))
+          elif self.ghost_list[3].direction == Direction.Right:
+            self.frame.blit(images.clyde_right,(x * tile_size, y * tile_size))
+          elif self.ghost_list[3].direction == Direction.Up:
+            self.frame.blit(images.clyde_up,(x * tile_size, y * tile_size))
+          else:
+            self.frame.blit(images.clyde_down,(x * tile_size, y * tile_size))
       else:
         pygame.draw.rect(self.frame, blue, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
       if tile.coin:
-        self.frame.blit(self.coin,(x * tile_size + tile_size/2, y * tile_size + tile_size/2))
+        self.frame.blit(images.coin,(x * tile_size + tile_size/2, y * tile_size + tile_size/2))
 
     x = self.playerPosition % vec_x
     y = int(self.playerPosition / vec_x)
@@ -239,25 +247,25 @@ class Game:
       actual_x = x * tile_size
       actual_y = y * tile_size + ((self.playerCounter-3) * (tile_size / 5))
 
-    if self.playerCounter % 2 == 0:
+    if self.playerCounter % 2 != 0:
       if self.currentDirection == Direction.Left:
-        self.frame.blit(self.pacLeftOpen,(actual_x, actual_y))
+        self.frame.blit(images.pacLeftOpen,(actual_x, actual_y))
       elif self.currentDirection == Direction.Right:
-        self.frame.blit(self.pacRightOpen,(actual_x, actual_y))
+        self.frame.blit(images.pacRightOpen,(actual_x, actual_y))
       elif self.currentDirection == Direction.Up:
-        self.frame.blit(self.pacUpOpen,(actual_x, actual_y))
+        self.frame.blit(images.pacUpOpen,(actual_x, actual_y))
       else:
-        self.frame.blit(self.pacDownOpen,(actual_x, actual_y))
+        self.frame.blit(images.pacDownOpen,(actual_x, actual_y))
 
     else:
       if self.currentDirection == Direction.Left:
-        self.frame.blit(self.pacLeftClosed,(actual_x, actual_y))
+        self.frame.blit(images.pacLeftClosed,(actual_x, actual_y))
       elif self.currentDirection == Direction.Right:
-        self.frame.blit(self.pacRightClosed,(actual_x, actual_y))
+        self.frame.blit(images.pacRightClosed,(actual_x, actual_y))
       elif self.currentDirection == Direction.Up:
-        self.frame.blit(self.pacUpClosed,(actual_x, actual_y))
+        self.frame.blit(images.pacUpClosed,(actual_x, actual_y))
       else:
-        self.frame.blit(self.pacDownClosed,(actual_x, actual_y))
+        self.frame.blit(images.pacDownClosed,(actual_x, actual_y))
 
 
   #Console draw display
