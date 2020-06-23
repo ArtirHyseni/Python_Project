@@ -357,7 +357,7 @@ class Game:
             self.ghost_list[index].active = 1
             self.ghost_list[index].init_ghost_pos(i)
 
-          self.tile.append(Board(c,i))
+          if self.playerAlive == True: self.tile.append(Board(c,i))
     self.tile[self.playerPosition].player = True
 
     # initialize active ghosts' first mode to chase
