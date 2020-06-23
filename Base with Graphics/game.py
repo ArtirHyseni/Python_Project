@@ -19,6 +19,9 @@ class Game:
     #Background color of the game
     self.frame.fill(black)
 
+    #List to create 2D vector for levels
+    self.tile = []
+
     # create ghost list
     self.ghost_list = [
                        ghost(name="blinky"),
@@ -26,52 +29,34 @@ class Game:
                        ghost(name="inky"),
                        ghost(name="clyde") ]
 
-    #Reads in board.txt and creates tile objects out of class Board
-    #which creates a 2D vector when constructed
-    self.tile = []
-    with open("board.txt", "r") as f:
-        f_text = f.read().replace('\n','')
-        f_text.replace('\n','')
-        for i, c in enumerate(f_text):
-          if c == '@':
-            self.playerPosition = i
-            c = ' '
-          # if ghost is present,change its attribute's accordingly
-          elif c in ['B', 'P', 'I', 'C']:
-            if c == 'B': index = get_index(self.ghost_list, "blinky")
-            elif c == 'P': index = get_index(self.ghost_list, "pinky")
-            elif c == 'I': index = get_index(self.ghost_list, "inky")
-            else: index = get_index(self.ghost_list, "clyde")
-            self.ghost_list[index].active = 1
-            self.ghost_list[index].init_ghost_pos(i)
-
-          self.tile.append(Board(c,i))
-    self.tile[self.playerPosition].player = True
-
     #The directional variable(s) in which Pac-Man moves each update
-    self.currentDirection = Direction.Left
-    self.currentAxis = Axis.Horizontal
+    self.currentDirection = None
+    self.currentAxis = None
 
-    #Counter which buffers Pac-Man's steps till reaching another index
-    #Each index requires Pac-Man to walk 5 steps to reach the next; 3 is the middle
-    self.playerCounter = 3
+    #Counter which buffers Pac-Man's steps till reaching another index; 1 to 5 with 3 being the crossroad
+    self.playerCounter = None
+
+    #Game variable declarations
+    self.coinCounter = 0
+    self.playerScore = 0
+    self.currentLevel = 0
+    self.playerAlive = True
 
     self.active = True
-
-    # initialize active ghosts' first mode to chase
-    # FIXME, change this back to chase (instead of scatter)
-    set_all_modes(get_actives(self.ghost_list), ghost_mode.scatter)
 
   def start(self):
 
     while self.active:
 
       #Game's refresh/update rate in miliseconds
-      pygame.time.delay(50)
+      pygame.time.delay(25)
 
       for event in pygame.event.get(): 
         if event.type == pygame.QUIT:
           self.active = False
+
+      if self.coinCounter == 0 or self.playerAlive == False:
+        self.build_level()
 
       #Listens to player_controller function; responsible for player movement automation 
       self.player_move()
@@ -85,6 +70,7 @@ class Game:
       self.draw()
       pygame.display.update()
 
+    #self.update_score()
     #pygame.Quit()
     #sys.exit()
   
@@ -166,6 +152,10 @@ class Game:
 
     if self.tile[self.playerPosition].coin == True:
       self.tile[self.playerPosition].coin = False
+      self.coinCounter -= 1
+
+    if self.tile[self.playerPosition].enemy == True:
+      self.playerAlive = False
 
     #Saves directional state for next update
     self.currentDirection = nextDirection
@@ -234,7 +224,7 @@ class Game:
         pygame.draw.rect(self.frame, blue, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
       if tile.coin:
-        self.frame.blit(images.coin,(x * tile_size + tile_size/2, y * tile_size + tile_size/2))
+        self.frame.blit(images.coin,(x * tile_size + tile_size/3, y * tile_size + tile_size/3))
 
     x = self.playerPosition % vec_x
     y = int(self.playerPosition / vec_x)
@@ -266,29 +256,6 @@ class Game:
         self.frame.blit(images.pacUpClosed,(actual_x, actual_y))
       else:
         self.frame.blit(images.pacDownClosed,(actual_x, actual_y))
-
-
-  #Console draw display
-  def console_display(self):
-
-    for tile in self.tile:
-      tile.update()
-
-    self.update_ghost_tiles()
-
-    output = ""
-    for i, tile in enumerate(self.tile):
-      if i % vec_x == 0 and i != 0:
-        output += "\n"
-      output += tile.type
-    os.system("clear")
-    print(output)
-    print("position: (%d, %d)" % (self.playerPosition % vec_x, int(self.playerPosition / vec_x)))
-    print("Counter: ", self.playerCounter)
-    print(self.currentDirection)
-    print(self.currentAxis)
-    print()
-
 
   def update_ghost_tiles(self): # FIXME, need to think about ways this could break
     # delete the old ghost locations
@@ -333,3 +300,77 @@ class Game:
     else:
       for tile in self.tile[::-1]:
         if tile.type != "#": return tile.position
+
+#Console draw display
+  def console_display(self):
+
+    for tile in self.tile:
+      tile.update()
+
+    self.update_ghost_tiles()
+
+    output = ""
+    for i, tile in enumerate(self.tile):
+      if i % vec_x == 0 and i != 0:
+        output += "\n"
+      output += tile.type
+    os.system("clear")
+    print(output)
+    print("position: (%d, %d)" % (self.playerPosition % vec_x, int(self.playerPosition / vec_x)))
+    print("Counter: ", self.playerCounter)
+    print(self.currentDirection)
+    print(self.currentAxis)
+    print()
+
+#Reads in text documents from Levels directory and creates tile objects out of class Board
+#Creates a 2D vector when constructed
+#Refreshes level instead if Pac-Man is defeated
+  def build_level(self):
+
+    if self.playerAlive == True:
+      self.tile = []
+      self.currentLevel += 1
+
+    else:
+      for tile in self.tile:
+        tile.enemy = False
+        tile.player = False
+      
+    temp = "Levels/level" + str(self.currentLevel) + ".txt"
+    with open(temp, "r") as f:
+        f_text = f.read().replace('\n','')
+        f_text.replace('\n','')
+        for i, c in enumerate(f_text):
+
+          #Create a variable that references the player location
+          if c == '@': self.playerPosition = i
+
+          #Increment coins to counter if new level is built
+          elif c == 'o' and self.playerAlive == True: self.coinCounter += 1
+
+          # if ghost is present,change its attribute's accordingly
+          elif c in ['B', 'P', 'I', 'C']:
+            if c == 'B': index = get_index(self.ghost_list, "blinky")
+            elif c == 'P': index = get_index(self.ghost_list, "pinky")
+            elif c == 'I': index = get_index(self.ghost_list, "inky")
+            else: index = get_index(self.ghost_list, "clyde")
+            self.ghost_list[index].active = 1
+            self.ghost_list[index].init_ghost_pos(i)
+
+          self.tile.append(Board(c,i))
+    self.tile[self.playerPosition].player = True
+
+    # initialize active ghosts' first mode to chase
+    # FIXME, change this back to chase (instead of scatter)
+    set_all_modes(get_actives(self.ghost_list), ghost_mode.scatter)
+
+    #Default status for Pac-Man
+    self.currentDirection = Direction.Left
+    self.currentAxis = Axis.Horizontal
+    self.playerCounter = 3
+    self.playerAlive = True
+
+  '''
+  def update_score(self):
+    TODO: append player's final score to scores.txt and his initials
+  '''

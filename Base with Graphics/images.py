@@ -15,7 +15,7 @@ pacUpClosed = pygame.transform.rotate(pacRightClosed, 90)
 pacDownClosed = pygame.transform.rotate(pacRightClosed, 270)
 
 #Coins
-coin = pygame.transform.scale(pygame.image.load("Images/pacman_closed.png"), (int(tile_size/4), int(tile_size/4)))
+coin = pygame.transform.scale(pygame.image.load("Images/pacman_closed.png"), (int(tile_size/2.35), int(tile_size/2.35)))
 
 #Blinky
 blinky_up = pygame.transform.scale(pygame.image.load("Images/blinky_up.png"), (tile_size, tile_size))
