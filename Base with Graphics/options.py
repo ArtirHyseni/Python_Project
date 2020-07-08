@@ -7,6 +7,11 @@ vec_x = 28
 vec_y = 31
 
 
+# font settings
+START_TEXT_SIZE = 16
+START_FONT = 'arial black'
+
+
 #Total pixels of an index
 tile_size = 18
 
