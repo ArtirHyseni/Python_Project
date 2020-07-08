@@ -1,6 +1,7 @@
 from game import *
 
 if __name__ == '__main__':
-
-  game = Game()
-  game.start()
+  intro = introScreen()
+  intro.start()
+#   game = Game()
+#   game.start()
