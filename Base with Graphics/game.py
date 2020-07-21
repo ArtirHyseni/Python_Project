@@ -1,6 +1,7 @@
 import pygame
 import os
 import images
+import time
 from options import *
 from board import *
 from ghost import *
@@ -22,6 +23,9 @@ class Game:
     #List to create 2D vector for levels
     self.tile = []
 
+    #Game's refresh/update rate in miliseconds
+    pygame.time.delay(25)
+
     # create ghost list
     self.ghost_list = [
                        ghost(name="blinky"),
@@ -40,38 +44,59 @@ class Game:
     self.coinCounter = 0
     self.playerScore = 0
     self.currentLevel = 0
+    self.playerLives = 3
     self.playerAlive = True
-
-    self.active = True
 
   def start(self):
 
-    while self.active:
+    #Menu/UI goes here (should loop and encapsulate game)
 
-      #Game's refresh/update rate in miliseconds
-      pygame.time.delay(25)
 
+
+
+
+    while True:
+
+      #Probably add the level tune here if I can find it.
       for event in pygame.event.get(): 
         if event.type == pygame.QUIT:
-          self.active = False
+          break
 
+      #Builds/Rebuilds level when conditions are met. 
       if self.coinCounter == 0 or self.playerAlive == False:
         self.build_level()
-
-      #Listens to player_controller function; responsible for player movement automation 
-      self.player_move()
+        self.draw()
+        pygame.display.update()
+        time.sleep(5)
 
       #After player has been moved, update coordinates in ghost objects
       self.ghosts_move()
 
+      #Listens to player_controller function; responsible for player movement automation 
+      self.player_move()
+
+      #Handles game objectives, defeat scenario, and scoring
+      self.game_events()
+
       #Updates display to console
       self.console_display()
-      
+
       self.draw()
       pygame.display.update()
 
-    #self.update_score()
-    #pygame.Quit()
+      if self.playerLives == 0: 
+        #Game over screen
+        #Update score to scores.txt
+
+        #Update game variables for newgame
+        self.coinCounter = 0
+        self.playerScore = 0
+        self.currentLevel = 0
+        self.playerLives = 3
+        self.playerAlive = True
+        
+        pygame.Quit()
+
     #sys.exit()
   
   #Obtains player input from the keyboard arrow keys
@@ -149,13 +174,6 @@ class Game:
           self.playerPosition = nextTile.position
           nextTile.player = True
           self.playerCounter = 5
-
-    if self.tile[self.playerPosition].coin == True:
-      self.tile[self.playerPosition].coin = False
-      self.coinCounter -= 1
-
-    if self.tile[self.playerPosition].enemy == True:
-      self.playerAlive = False
 
     #Saves directional state for next update
     self.currentDirection = nextDirection
@@ -321,6 +339,22 @@ class Game:
     print(self.currentDirection)
     print(self.currentAxis)
     print()
+
+  def game_events(self):
+    #Checks if player collides with an enemy in the same index
+    if self.tile[self.playerPosition].enemy == True:
+      self.playerAlive = False
+      self.playerLives -= 1
+      time.sleep(5)
+      return
+
+    #Checks if Pac-Man obtains a coins; scores him points and increments the counter
+    if self.tile[self.playerPosition].coin == True:
+      self.tile[self.playerPosition].coin = False
+      self.coinCounter -= 1
+      self.playerScore += coin_value
+
+      #Maybe make an animation here?
 
 #Reads in text documents from Levels directory and creates tile objects out of class Board
 #Creates a 2D vector when constructed
