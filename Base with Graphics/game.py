@@ -7,6 +7,7 @@ from options import *
 from board import *
 from ghost import *
 from status import *
+from gameover import *
 
 pygame.init()
 pygame.display.set_caption("Pac-Man")
