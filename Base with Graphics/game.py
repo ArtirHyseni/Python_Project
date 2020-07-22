@@ -32,6 +32,7 @@ class Game:
                        ghost(name="pinky"),
                        ghost(name="inky"),
                        ghost(name="clyde") ]
+    self.ghost_counter = 0
 
     #The directional variable(s) in which Pac-Man moves each update
     self.currentDirection = None
@@ -180,13 +181,15 @@ class Game:
     self.currentAxis = nextAxis
 
   def ghosts_move(self):
+    if self.ghost_counter%10 == 0:
+      # targets of ghosts *may* be dependent on player
+      # FIXME only call set targets if not in scatter mode
+      set_all_targets(get_actives(self.ghost_list), self)
+      # set values for ghosts' direction and pos based on targets
+      # this will be updating only the data held within the ghosts themselves, not the board
+      set_all_dirs_pos(get_actives(self.ghost_list), self)
 
-    # targets of ghosts *may* be dependent on player
-    # FIXME only call set targets if not in scatter mode
-    set_all_targets(get_actives(self.ghost_list), self)
-    # set values for ghosts' direction and pos based on targets
-    # this will be updating only the data held within the ghosts themselves, not the board
-    set_all_dirs_pos(get_actives(self.ghost_list), self)
+    self.ghost_counter += 1
 
   #Draw Function
   def draw(self):
@@ -200,45 +203,20 @@ class Game:
         pygame.draw.rect(self.frame, black, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
       elif tile.enemy:
-        if tile.type == 'B':
-          if self.ghost_list[0].direction == Direction.Left:
-            self.frame.blit(images.blinky_left,(x * tile_size, y * tile_size))
-          elif self.ghost_list[0].direction == Direction.Right:
-            self.frame.blit(images.blinky_right,(x * tile_size, y * tile_size))
-          elif self.ghost_list[0].direction == Direction.Up:
-            self.frame.blit(images.blinky_up,(x * tile_size, y * tile_size))
-          else:
-            self.frame.blit(images.blinky_down,(x * tile_size, y * tile_size))
+        if tile.type == 'B': i = 0
+        elif tile.type == 'P': i = 1
+        elif tile.type == 'I': i = 2
+        else: i = 3
 
-        elif tile.type == 'P':
-          if self.ghost_list[1].direction == Direction.Left:
-            self.frame.blit(images.pinky_left,(x * tile_size, y * tile_size))
-          elif self.ghost_list[1].direction == Direction.Right:
-            self.frame.blit(images.pinky_right,(x * tile_size, y * tile_size))
-          elif self.ghost_list[1].direction == Direction.Up:
-            self.frame.blit(images.pinky_up,(x * tile_size, y * tile_size))
-          else:
-            self.frame.blit(images.pinky_down,(x * tile_size, y * tile_size))
-
-        elif tile.type == 'I':
-          if self.ghost_list[2].direction == Direction.Left:
-            self.frame.blit(images.inky_left,(x * tile_size, y * tile_size))
-          elif self.ghost_list[2].direction == Direction.Right:
-            self.frame.blit(images.inky_right,(x * tile_size, y * tile_size))
-          elif self.ghost_list[2].direction == Direction.Up:
-            self.frame.blit(images.inky_up,(x * tile_size, y * tile_size))
-          else:
-            self.frame.blit(images.inky_down,(x * tile_size, y * tile_size))
-
+        if self.ghost_list[i].direction == Direction.Left:
+          self.frame.blit(images.clyde_left, (x * tile_size, y * tile_size))
+        elif self.ghost_list[i].direction == Direction.Right:
+          self.frame.blit(images.clyde_right, (x * tile_size, y * tile_size))
+        elif self.ghost_list[i].direction == Direction.Up:
+          self.frame.blit(images.clyde_up, (x * tile_size, y * tile_size))
         else:
-          if self.ghost_list[3].direction == Direction.Left:
-            self.frame.blit(images.clyde_left,(x * tile_size, y * tile_size))
-          elif self.ghost_list[3].direction == Direction.Right:
-            self.frame.blit(images.clyde_right,(x * tile_size, y * tile_size))
-          elif self.ghost_list[3].direction == Direction.Up:
-            self.frame.blit(images.clyde_up,(x * tile_size, y * tile_size))
-          else:
-            self.frame.blit(images.clyde_down,(x * tile_size, y * tile_size))
+          self.frame.blit(images.clyde_down, (x * tile_size, y * tile_size))
+
       else:
         pygame.draw.rect(self.frame, blue, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
@@ -326,7 +304,12 @@ class Game:
     for tile in self.tile:
       tile.update()
 
-    self.update_ghost_tiles()
+    if self.ghost_counter%10 == 0:
+      self.update_ghost_tiles()
+    # if enough time has passed, switch modes and refresh ghost_counter
+    if self.ghost_counter%500 == 0:
+      change_all_modes(get_actives(self.ghost_list))
+      self.ghost_counter = 0
 
     output = ""
     for i, tile in enumerate(self.tile):
@@ -396,8 +379,7 @@ class Game:
     self.tile[self.playerPosition].player = True
 
     # initialize active ghosts' first mode to chase
-    # FIXME, change this back to chase (instead of scatter)
-    set_all_modes(get_actives(self.ghost_list), ghost_mode.scatter)
+    set_all_modes(get_actives(self.ghost_list), ghost_mode.chase)
 
     #Default status for Pac-Man
     self.currentDirection = Direction.Left

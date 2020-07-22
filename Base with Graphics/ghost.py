@@ -55,9 +55,9 @@ class ghost(object):
         self.mode = gmode
 
     # FIXME, handled changing to frightened or eaten mode
-    def change_ghost_mode(self, gmode, fnOrEat=None):
+    def change_ghost_mode(self, fnOrEat=None):
         if fnOrEat == None:
-            if gmode == ghost_mode.chase:
+            if self.mode == ghost_mode.chase:
                 self.mode = ghost_mode.scatter
             else:
                 self.mode = ghost_mode.chase
@@ -74,20 +74,20 @@ class ghost(object):
     # FIXME, program target setting for chase
     # determine & set target based on name and mode
     def set_ghost_target(self, gameobj):
-        inkyindex = 2; clydeindex = 3
+        blinkyindex = 0; inkyindex = 2; clydeindex = 3
         if self.name == "blinky":
             if self.mode == ghost_mode.chase:
                 # set blinky's target to pacman's tile
-                self.target = gameobj.playerpos
+                self.target = gameobj.playerPosition
             elif self.mode == ghost_mode.scatter:
                 self.target = gameobj.get_corner(corner.top_right)
 
         elif self.name == "pinky":
             if self.mode == ghost_mode.chase:
                 # set pinky's target to two tiles in front of pacman
-                newpos = gameobj.playerpos
+                newpos = gameobj.playerPosition
                 for step in range(2):
-                    newpos = get_next_tile(newpos, gameobj.CurrentDirection)
+                    newpos = (get_next_tile(gameobj, newpos, gameobj.currentDirection)).position
                 self.target = newpos
             elif self.mode == ghost_mode.scatter:
                 self.target = gameobj.get_corner(corner.top_left)
@@ -97,8 +97,8 @@ class ghost(object):
             # rotate blinky's target roughly 180 degrees in the opposite direction
             if self.mode == ghost_mode.chase:
                 # get blinky's info
-                bpos = gameobj.ghost_list[inkyindex].pos
-                btarget = gameobj.ghost_list[inkyindex].target
+                bpos = gameobj.ghost_list[blinkyindex].pos
+                btarget = gameobj.ghost_list[blinkyindex].target
                 # rotate the btarget roughly 180 degrees for dist
                 # if blinky is above or (same isle) left of the player
                 if bpos < btarget:
@@ -113,11 +113,11 @@ class ghost(object):
             # set clyde's target based off his distance from pacman
             if self.mode == ghost_mode.chase:
                 # if clyde's info hasn't been set yet, start off with being the playerpos
-                if self.target == None: self.target = gameobj.playerpos
+                if self.target == None: self.target = gameobj.playerPosition
                 # if the distance between them is 8 or more, set to pacman's location
                 cdist = calc_dist(self.pos, self.target)
                 if cdist >= 8:
-                    self.target = gameobj.playerpos
+                    self.target = gameobj.playerPosition
                 # if the distance is less than 8, set to clyde's corner
                 else:
                     self.target = gameobj.get_corner(corner.bottom_left)
@@ -174,6 +174,10 @@ def set_all_modes(ghost_list, gmode):
     for g in ghost_list:
         g.set_ghost_mode(gmode)
 
+def change_all_modes(ghost_list):
+    for g in ghost_list:
+        g.change_ghost_mode()
+
 def set_all_targets(ghost_list, gameobj):
     for g in ghost_list:
         g.set_ghost_target(gameobj)
@@ -226,12 +230,16 @@ def get_wall_directions(gameobj, ghostobj, dir_options):
 # this funct based on James's code
 def get_next_tile(gameobj, spos, dir):
     if dir == Direction.Left:
+        if (spos - 1) <= 0: return 0
         return gameobj.tile[spos - 1]
     elif dir == Direction.Right:
+        if (spos + 1) >= len(gameobj.tile): return gameobj.tile[len(gameobj.tile)-1]
         return gameobj.tile[spos + 1]
     elif dir == Direction.Up:
+        if (spos - vec_x) <= 0: return 0
         return gameobj.tile[spos - vec_x]
     elif dir == Direction.Down:
+        if (spos + vec_x) >= len(gameobj.tile): return gameobj.tile[len(gameobj.tile)-1]
         return gameobj.tile[spos + vec_x]
 
 
