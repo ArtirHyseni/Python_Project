@@ -1,3 +1,4 @@
+from pathlib import Path
 import pygame
 import os
 import images
@@ -206,19 +207,25 @@ class Game:
         pygame.draw.rect(self.frame, black, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
       elif tile.enemy:
-        if tile.type == 'B': i = 0
-        elif tile.type == 'P': i = 1
-        elif tile.type == 'I': i = 2
-        else: i = 3
-
-        if self.ghost_list[i].direction == Direction.Left:
-          self.frame.blit(images.clyde_left, (x * tile_size, y * tile_size))
-        elif self.ghost_list[i].direction == Direction.Right:
-          self.frame.blit(images.clyde_right, (x * tile_size, y * tile_size))
-        elif self.ghost_list[i].direction == Direction.Up:
-          self.frame.blit(images.clyde_up, (x * tile_size, y * tile_size))
+        if tile.type == 'B':
+          i = 0
+          img = "images.blinky"
+        elif tile.type == 'P':
+          i = 1
+          img = "images.pinky"
+        elif tile.type == 'I':
+          i = 2
+          img = "images.inky"
         else:
-          self.frame.blit(images.clyde_down, (x * tile_size, y * tile_size))
+          i = 3
+          img = "images.clyde"
+
+        if self.ghost_list[i].direction == Direction.Left:img = img + "_left"
+        elif self.ghost_list[i].direction == Direction.Right: img = img + "_right"
+        elif self.ghost_list[i].direction == Direction.Up: img = img + "_up"
+        else: img = img + "_down"
+
+        self.frame.blit(eval(img), (x * tile_size, y * tile_size))
 
       else:
         pygame.draw.rect(self.frame, blue, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
@@ -307,7 +314,7 @@ class Game:
     for tile in self.tile:
       tile.update()
 
-    if self.ghost_counter%10 == 0:
+    #if self.ghost_counter%10 == 0:
       self.update_ghost_tiles()
     # if enough time has passed, switch modes and refresh ghost_counter
     if self.ghost_counter%500 == 0:
