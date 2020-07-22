@@ -44,7 +44,7 @@ class Game:
     self.coinCounter = 0
     self.playerScore = 0
     self.currentLevel = 0
-    self.playerLives = 3
+    self.playerLives = 1
     self.playerAlive = True
 
   def start(self):
@@ -87,6 +87,9 @@ class Game:
       if self.playerLives == 0: 
         #Game over screen
         #Update score to scores.txt
+        
+        gameov = gameOver()
+        gameov.begin()
 
         #Update game variables for newgame
         self.coinCounter = 0
