@@ -73,28 +73,54 @@ class ghost(object):
     # FIXME, add in frightened and eaten?
     # FIXME, program target setting for chase
     # determine & set target based on name and mode
-    def set_ghost_target(self, playerpos, gameobj):
+    def set_ghost_target(self, gameobj):
+        inkyindex = 2; clydeindex = 3
         if self.name == "blinky":
             if self.mode == ghost_mode.chase:
-                self.target = playerpos
+                # set blinky's target to pacman's tile
+                self.target = gameobj.playerpos
             elif self.mode == ghost_mode.scatter:
                 self.target = gameobj.get_corner(corner.top_right)
 
         elif self.name == "pinky":
             if self.mode == ghost_mode.chase:
-                self.target = playerpos
+                # set pinky's target to two tiles in front of pacman
+                newpos = gameobj.playerpos
+                for step in range(2):
+                    newpos = get_next_tile(newpos, gameobj.CurrentDirection)
+                self.target = newpos
             elif self.mode == ghost_mode.scatter:
                 self.target = gameobj.get_corner(corner.top_left)
 
         elif self.name == "inky":
+            # set inky's target based off of blinky's target :
+            # rotate blinky's target roughly 180 degrees in the opposite direction
             if self.mode == ghost_mode.chase:
-                self.target = playerpos
+                # get blinky's info
+                bpos = gameobj.ghost_list[inkyindex].pos
+                btarget = gameobj.ghost_list[inkyindex].target
+                # rotate the btarget roughly 180 degrees for dist
+                # if blinky is above or (same isle) left of the player
+                if bpos < btarget:
+                    self.target = btarget + bpos
+                # if blinky is below or (same isle) right of the player
+                else:
+                    self.target = btarget - bpos
             elif self.mode == ghost_mode.scatter:
                 self.target = gameobj.get_corner(corner.bottom_right)
 
         elif self.name == "clyde":
+            # set clyde's target based off his distance from pacman
             if self.mode == ghost_mode.chase:
-                self.target = playerpos
+                # if clyde's info hasn't been set yet, start off with being the playerpos
+                if self.target == None: self.target = gameobj.playerpos
+                # if the distance between them is 8 or more, set to pacman's location
+                cdist = calc_dist(self.pos, self.target)
+                if cdist >= 8:
+                    self.target = gameobj.playerpos
+                # if the distance is less than 8, set to clyde's corner
+                else:
+                    self.target = gameobj.get_corner(corner.bottom_left)
             elif self.mode == ghost_mode.scatter:
                 self.target = gameobj.get_corner(corner.bottom_left)
 
@@ -114,14 +140,14 @@ class ghost(object):
 
         #if only one possible travel direction, travel there
         if len(dir_options) == 1:
-            next_tile = get_next_tile(gameobj, self, dir_options[0])
+            next_tile = get_next_tile(gameobj, self.pos, dir_options[0])
             self.direction = dir_options[0]
             self.pos = next_tile.position
             return
 
         #if dir_options are empty, turn the ghost around
         elif len(dir_options) == 0:
-            next_tile = get_next_tile(gameobj, self, get_opposite_dir(self.direction))
+            next_tile = get_next_tile(gameobj, self.pos, get_opposite_dir(self.direction))
             self.direction = get_opposite_dir(self.direction)
             self.pos = next_tile.position
             return
@@ -129,7 +155,7 @@ class ghost(object):
         #find which of *multiple* options provides shortest distance
         smallestdist = 100
         for option in dir_options:
-            next_tile = get_next_tile(gameobj, self, option)
+            next_tile = get_next_tile(gameobj, self.pos, option)
             npos = next_tile.position
             posdist = calc_dist(npos, self.target)
             if posdist < smallestdist:
@@ -148,9 +174,9 @@ def set_all_modes(ghost_list, gmode):
     for g in ghost_list:
         g.set_ghost_mode(gmode)
 
-def set_all_targets(ghost_list, playerpos, gameobj):
+def set_all_targets(ghost_list, gameobj):
     for g in ghost_list:
-        g.set_ghost_target(playerpos, gameobj)
+        g.set_ghost_target(gameobj)
 
 def set_all_dirs_pos(ghost_list, gameobj):
     for g in ghost_list:
@@ -175,7 +201,6 @@ def get_ghosts_start_pos(level): #FIXME
 def get_all_directions():
     return [dir for dir in Direction]
 
-
 def get_opposite_dir(dir):
     if dir == Direction.Down:
         return Direction.Up
@@ -191,7 +216,7 @@ def get_opposite_dir(dir):
 def get_wall_directions(gameobj, ghostobj, dir_options):
     wall_dirs = []
     for dir in dir_options:
-        possible_tile = get_next_tile(gameobj, ghostobj, dir)
+        possible_tile = get_next_tile(gameobj, ghostobj.pos, dir)
         if possible_tile.passable == False:
             wall_dirs.append(dir)
 
@@ -199,15 +224,15 @@ def get_wall_directions(gameobj, ghostobj, dir_options):
 
 # return the tile you would be on if traveling in direction parameter
 # this funct based on James's code
-def get_next_tile(gameobj, ghostobj, dir):
+def get_next_tile(gameobj, spos, dir):
     if dir == Direction.Left:
-        return gameobj.tile[ghostobj.pos - 1]
+        return gameobj.tile[spos - 1]
     elif dir == Direction.Right:
-        return gameobj.tile[ghostobj.pos + 1]
+        return gameobj.tile[spos + 1]
     elif dir == Direction.Up:
-        return gameobj.tile[ghostobj.pos - vec_x]
+        return gameobj.tile[spos - vec_x]
     elif dir == Direction.Down:
-        return gameobj.tile[ghostobj.pos + vec_x]
+        return gameobj.tile[spos + vec_x]
 
 
 def calc_dist(pos, target):

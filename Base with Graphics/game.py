@@ -182,7 +182,8 @@ class Game:
   def ghosts_move(self):
 
     # targets of ghosts *may* be dependent on player
-    set_all_targets(get_actives(self.ghost_list), self.playerPosition, self)
+    # FIXME only call set targets if not in scatter mode
+    set_all_targets(get_actives(self.ghost_list), self)
     # set values for ghosts' direction and pos based on targets
     # this will be updating only the data held within the ghosts themselves, not the board
     set_all_dirs_pos(get_actives(self.ghost_list), self)
