@@ -24,9 +24,9 @@ aqua   = (0, 255, 255)
 blue   = (  0,   0, 255)
 yellow = (255, 255,   0)
 olive  = (128, 128, 0)
+medGray	 = (128,128,128)
+darkgreen = ( 0, 100, 0)
 
-#Pac-Man starting lives
-player_lives = 3
 
 #Score values
 coin_value = 50
