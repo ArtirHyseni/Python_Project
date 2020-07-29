@@ -49,6 +49,8 @@ class gameOver:
                 self.running = False   
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.running = False
+                pygame.quit()
+                sys.exit()
 
     def game_over_update(self):
         pass
