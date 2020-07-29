@@ -3,7 +3,9 @@ from introScreen import *
 from gameOver import *
 
 if __name__ == '__main__':
+  iterator = 0
   intro = introScreen()
-  intro.start()
-#   game = Game()
-#   game.start()
+  while iterator <= 3:
+    #intro = introScreen()
+    intro.start()
+    iterator = iterator + 1
