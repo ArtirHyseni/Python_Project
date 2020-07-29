@@ -27,6 +27,10 @@ class Game:
     #Game's refresh/update rate in miliseconds
     pygame.time.delay(25)
 
+    
+    #change colors each level
+    self.levelColors = [olive, darkgreen, medGray, black]
+    
     # create ghost list
     self.ghost_list = [
                        ghost(name="blinky"),
@@ -201,7 +205,7 @@ class Game:
       y = int(i / vec_x)
 
       if tile.passable and not tile.enemy:
-        pygame.draw.rect(self.frame, black, pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
+        pygame.draw.rect(self.frame, self.levelColors[self.currentLevel-1], pygame.Rect((x * tile_size, y * tile_size, tile_size, tile_size)))
 
       elif tile.enemy:
         if tile.type == 'B':
