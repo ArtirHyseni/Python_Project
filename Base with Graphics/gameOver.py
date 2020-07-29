@@ -7,7 +7,7 @@ from board import *
 from ghost import *
 from status import *
 from game import *
-from Base.options import frame_height
+from options import frame_height
 
 pygame.init()
 pygame.display.set_caption("Pac-Man")
@@ -31,8 +31,6 @@ class gameOver:
                 self.game_over_draw()
             else:
                 pass
-        pygame.quit()
-        sys.exit()
 
     def draw_text(self, words, frame, pos, size, colour, font_name, centered=False):
         font = pygame.font.SysFont(font_name, size)
@@ -48,7 +46,7 @@ class gameOver:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.reset()
+                self.running = False   
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.running = False
 
@@ -64,4 +62,5 @@ class gameOver:
             frame_width // 2, frame_height // 2], 36, (190, 190, 190), START_FONT, centered=True)
         self.draw_text(quit_text, self.frame, [
             frame_width // 2, frame_height // 1.5], 36, (190, 190, 190), START_FONT, centered=True)
+       
         pygame.display.update()
