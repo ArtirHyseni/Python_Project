@@ -7,7 +7,7 @@ from board import *
 from ghost import *
 from status import *
 from game import *
-from Base.options import frame_height
+from options import frame_height
 
 pygame.init()
 pygame.display.set_caption("Pac-Man")
@@ -31,8 +31,6 @@ class introScreen:
                 self.start_draw()
             else:
                 pass
-        pygame.quit()
-        sys.exit()
 
     def draw_text(self, words, frame, pos, size, colour, font_name, centered=False):
         font = pygame.font.SysFont(font_name, size)
@@ -67,4 +65,6 @@ class introScreen:
                        START_TEXT_SIZE, (255, 255, 255), START_FONT)
 
         pygame.display.update()
+
+
 
